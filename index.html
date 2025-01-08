@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Emissão de NFS-e</title>
+		<link href="./assets/style.css" rel="stylesheet" />
+	</head>
+	<body>
+		<h1>Emissão de Nota Fiscal de Serviço</h1>
+		<div class="form-container">
+			<h2>Adicionar item</h2>
+			<form id="formNFS">
+				<label for="itemVendido">Item:</label>
+				<input required type="text" id="itemInput" name="Item vendido" />
+
+				<label for="valorVenda">Valor da Venda:</label>
+				<input
+					step="0.01"
+					required
+					type="number"
+					id="valorVenda"
+					name="Valor de venda"
+				/>
+
+				<button id="formButton" type="submit">Adicionar item</button>
+			</form>
+		</div>
+		<div class="item-list-container">
+			<h2>Itens vendidos</h2>
+			<ul id="itemList"></ul>
+
+			<form id="taxForm">
+				<label for="porcentagemIRPF">Porcentagem do Imposto (IRPF):</label>
+				<input
+					step="0.01"
+					type="number"
+					id="porcentagemIRPF"
+					name="porcentagem de IRPF"
+				/>
+
+				<label for="porcentagemPIS">Porcentagem do Imposto (PIS):</label>
+				<input
+					step="0.01"
+					type="number"
+					id="porcentagemPIS"
+					name="porcentagem PIS"
+				/>
+
+				<label for="porcentagemCOFINS">Porcentagem do Imposto (COFINS):</label>
+				<input
+					step="0.01"
+					type="number"
+					id="porcentagemCOFINS"
+					name="porcentagem COFINS"
+				/>
+
+				<label for="porcentagemINSS">Porcentagem do Imposto (INSS):</label>
+				<input
+					step="0.01"
+					type="number"
+					id="porcentagemINSS"
+					name="porcentagem INSS"
+				/>
+
+				<label for="porcentagemISSQN">Porcentagem do Imposto (ISSQN):</label>
+				<input
+					step="0.01"
+					type="number"
+					id="porcentagemISSQN"
+					name="porcentagem ISSQN"
+				/>
+			</form>
+		</div>
+
+		<button id="calcNF" type="button">Calcular e Gerar NFS-e</button>
+		<div id="result-container"></div>
+		<div id="tax-container"></div>
+
+		<script src="./assets/index.js" defer></script>
+	</body>
+</html>

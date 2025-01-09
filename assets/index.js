@@ -1,3 +1,5 @@
+const { jsPDF } = window.jspdf;
+
 // Form for adding items to a list
 const formNFS = document.getElementById("formNFS");
 // taxForm for adding tax values
@@ -101,4 +103,94 @@ calcNF.addEventListener("click", function () {
 	}
 
 	resultContainer.appendChild(generatePDFButton);
+});
+
+generatePDFButton.addEventListener("click", function () {
+	const doc = new jsPDF();
+
+	let totalSales = addedItems.reduce((previous_val, item) => {
+		return previous_val + parseFloat(item["Valor de venda"]);
+	}, 0);
+
+	const pageSize = doc.internal.pageSize;
+	const pageWidth = pageSize.getWidth();
+	const pageHeight = pageSize.getHeight();
+	const centerX = Math.trunc(pageWidth) / 2;
+
+	let yOffset = 10;
+	doc.setFontSize(16);
+
+	doc.setFont(undefined, "bold");
+	doc.text("Nota Fiscal", centerX, 10);
+	doc.setFont(undefined, "normal");
+	yOffset += 10;
+
+	if (addedItems.length === 0) {
+		doc.text("Nenhum item adicionado", centerX, yOffset);
+		yOffset += 10;
+	} else {
+		doc.setFont(undefined, "bold");
+		doc.text("Dados do prestador:", centerX, yOffset);
+		doc.setFont(undefined, "normal");
+		yOffset += 10;
+
+		doc.setFont(undefined, "bold");
+		doc.text("Nome:", 10, yOffset);
+		doc.setFont(undefined, "normal");
+		yOffset += 10;
+
+		doc.setFont(undefined, "bold");
+		doc.text("CPF/CNPJ:", 10, yOffset);
+		doc.setFont(undefined, "normal");
+
+		yOffset += 10;
+		doc.line(10, yOffset, pageWidth - 10, yOffset);
+		yOffset += 10;
+
+		doc.setFont(undefined, "bold");
+		doc.text("Dados do cliente:", centerX, yOffset);
+		doc.setFont(undefined, "normal");
+		yOffset += 10;
+
+		doc.setFont(undefined, "bold");
+		doc.text("Nome:", 10, yOffset);
+		doc.setFont(undefined, "normal");
+		yOffset += 10;
+
+		doc.setFont(undefined, "bold");
+		doc.text("CPF/CNPJ:", 10, yOffset);
+		doc.setFont(undefined, "normal");
+
+		yOffset += 20;
+		doc.setFont(undefined, "bold");
+		doc.text("Itens da Nota", 10, yOffset);
+		doc.setFont(undefined, "normal");
+		yOffset += 10;
+
+		addedItems.forEach((item, index) => {
+			doc.text(`Item ${index + 1}:`, 10, yOffset);
+			yOffset += 10;
+			for (const [key, value] of Object.entries(item)) {
+				doc.text(`${key}: R$${value}`, 10, yOffset);
+				yOffset += 10;
+			}
+			yOffset += 10;
+		});
+
+		doc.setFont(undefined, "bold");
+		doc.text(`Valor total: R$${totalSales}`, 10, yOffset);
+		doc.setFont(undefined, "normal");
+		yOffset += 10;
+
+		doc.setFont(undefined, "bold");
+		doc.text("Impostos (%):", 10, yOffset);
+		doc.setFont(undefined, "normal");
+		yOffset += 10;
+
+		for (const [key, value] of Object.entries(taxValues)) {
+			doc.text(`${key}: ${value}%`, 10, yOffset);
+			yOffset += 10;
+		}
+	}
+	doc.output("dataurlnewwindow");
 });

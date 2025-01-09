@@ -21,7 +21,7 @@ const taxValues = {};
 const generatePDFButton = document.createElement("button");
 generatePDFButton.textContent = "Generate PDF";
 
-// Handle form submission
+// Handle items form submission
 formNFS.addEventListener("submit", function (event) {
 	event.preventDefault();
 
@@ -60,6 +60,7 @@ formNFS.addEventListener("submit", function (event) {
 	formNFS.reset();
 });
 
+// Handles sum of all values and taxes
 calcNF.addEventListener("click", function () {
 	let totalSales = addedItems.reduce((previous_val, item) => {
 		return previous_val + parseFloat(item["Valor de venda"]);
@@ -79,9 +80,12 @@ calcNF.addEventListener("click", function () {
 
 	const taxFormData = new FormData(taxForm);
 
-	// Iterate over the form fields and spawns a new element for each key-value pair
+	// Iterate over the form fields and saves the key-value pair into the taxValues object
 	for (const [name, value] of taxFormData.entries()) {
-		taxValues[name] = value;
+		taxValues[name] = {
+			value: value,
+			calculated: (totalSales * value) / 100,
+		};
 	}
 
 	// cleaning previous values
@@ -91,13 +95,23 @@ calcNF.addEventListener("click", function () {
 
 	// Inserting the tax values into the result container
 	for (const [key, value] of Object.entries(taxValues)) {
-		const paragraphElement = document.createElement("p");
 		const titleElement = document.createElement("h3");
+		const taxParagraph = document.createElement("p");
+
+		const calculatedTitle = document.createElement("h4");
+		const calculatedTaxElement = document.createElement("p");
 
 		titleElement.textContent = `${key}:`;
-		paragraphElement.textContent = `${value}%`;
 		taxContainer.appendChild(titleElement);
-		taxContainer.appendChild(paragraphElement);
+
+		taxParagraph.textContent = `${value["value"]}%`;
+		taxContainer.appendChild(taxParagraph);
+
+		calculatedTitle.textContent = `Imposto calculado sob ${key}: `;
+		taxContainer.appendChild(calculatedTitle);
+
+		calculatedTaxElement.textContent = `R$${value["calculated"]}`;
+		taxContainer.appendChild(calculatedTaxElement);
 
 		resultContainer.appendChild(taxContainer);
 	}
@@ -105,6 +119,7 @@ calcNF.addEventListener("click", function () {
 	resultContainer.appendChild(generatePDFButton);
 });
 
+// Handles the generation of the PDF
 generatePDFButton.addEventListener("click", function () {
 	const doc = new jsPDF();
 
@@ -118,79 +133,100 @@ generatePDFButton.addEventListener("click", function () {
 	const centerX = Math.trunc(pageWidth) / 2;
 
 	let yOffset = 10;
-	doc.setFontSize(16);
 
-	doc.setFont(undefined, "bold");
-	doc.text("Nota Fiscal", centerX, 10);
-	doc.setFont(undefined, "normal");
-	yOffset += 10;
+	yOffset = addText(doc, "Nota Fiscal", pageHeight, yOffset, centerX, true);
 
 	if (addedItems.length === 0) {
 		doc.text("Nenhum item adicionado", centerX, yOffset);
 		yOffset += 10;
 	} else {
-		doc.setFont(undefined, "bold");
-		doc.text("Dados do prestador:", centerX, yOffset);
-		doc.setFont(undefined, "normal");
-		yOffset += 10;
+		yOffset = addText(
+			doc,
+			"Dados do prestador:",
+			pageHeight,
+			yOffset,
+			centerX,
+			true
+		);
 
-		doc.setFont(undefined, "bold");
-		doc.text("Nome:", 10, yOffset);
-		doc.setFont(undefined, "normal");
-		yOffset += 10;
+		yOffset = addText(doc, "Nome:", pageHeight, yOffset, 10, true);
 
-		doc.setFont(undefined, "bold");
-		doc.text("CPF/CNPJ:", 10, yOffset);
-		doc.setFont(undefined, "normal");
+		yOffset = addText(doc, "CPF/CNPJ:", pageHeight, yOffset, 10, true);
 
-		yOffset += 10;
 		doc.line(10, yOffset, pageWidth - 10, yOffset);
+
+		yOffset = addText(
+			doc,
+			"Dados do cliente:",
+			pageHeight,
+			yOffset,
+			centerX,
+			true
+		);
+
+		yOffset = addText(doc, "Nome:", pageHeight, yOffset, 10, true);
+
+		yOffset = addText(doc, "CPF/CNPJ:", pageHeight, yOffset, 10, true);
+
 		yOffset += 10;
 
-		doc.setFont(undefined, "bold");
-		doc.text("Dados do cliente:", centerX, yOffset);
-		doc.setFont(undefined, "normal");
-		yOffset += 10;
-
-		doc.setFont(undefined, "bold");
-		doc.text("Nome:", 10, yOffset);
-		doc.setFont(undefined, "normal");
-		yOffset += 10;
-
-		doc.setFont(undefined, "bold");
-		doc.text("CPF/CNPJ:", 10, yOffset);
-		doc.setFont(undefined, "normal");
-
-		yOffset += 20;
-		doc.setFont(undefined, "bold");
-		doc.text("Itens da Nota", 10, yOffset);
-		doc.setFont(undefined, "normal");
-		yOffset += 10;
+		yOffset = addText(doc, "Itens da Nota:", pageHeight, yOffset, 10, true);
 
 		addedItems.forEach((item, index) => {
-			doc.text(`Item ${index + 1}:`, 10, yOffset);
-			yOffset += 10;
+			yOffset = addText(
+				doc,
+				`Item ${index + 1}:`,
+				pageHeight,
+				yOffset,
+				10,
+				true
+			);
+
 			for (const [key, value] of Object.entries(item)) {
-				doc.text(`${key}: R$${value}`, 10, yOffset);
-				yOffset += 10;
+				yOffset = addText(doc, `${key}: R$${value}`, pageHeight, yOffset, 10);
 			}
-			yOffset += 10;
 		});
 
-		doc.setFont(undefined, "bold");
-		doc.text(`Valor total: R$${totalSales}`, 10, yOffset);
-		doc.setFont(undefined, "normal");
-		yOffset += 10;
+		yOffset = addText(
+			doc,
+			`Valor total: R$${totalSales}`,
+			pageHeight,
+			yOffset,
+			10,
+			true
+		);
 
-		doc.setFont(undefined, "bold");
-		doc.text("Impostos (%):", 10, yOffset);
-		doc.setFont(undefined, "normal");
-		yOffset += 10;
+		yOffset = addText(doc, "Impostos (%):", pageHeight, yOffset, 10, true);
 
 		for (const [key, value] of Object.entries(taxValues)) {
-			doc.text(`${key}: ${value}%`, 10, yOffset);
+			yOffset = addText(doc, `${key}:`, pageHeight, yOffset, 10, true);
+
+			yOffset = addText(doc, `${value["value"]}%`, pageHeight, yOffset, 10);
+
+			yOffset = addText(
+				doc,
+				`Imposto calculado: R$${value["calculated"]}`,
+				pageHeight,
+				yOffset,
+				10
+			);
 			yOffset += 10;
 		}
 	}
 	doc.output("dataurlnewwindow");
 });
+
+/// Helper function to add text to the PDF
+/// If the text is too long, it will add a new page
+function addText(doc, text, pageHeight, yOffset, xOffset, bold = false) {
+	if (yOffset > pageHeight - 10) {
+		doc.addPage();
+		yOffset = 10;
+	}
+	doc.setFont(undefined, bold ? "bold" : "normal");
+	doc.text(`${text}`, xOffset, yOffset);
+	doc.setFont(undefined, "normal");
+
+	yOffset += 10;
+	return yOffset;
+}
